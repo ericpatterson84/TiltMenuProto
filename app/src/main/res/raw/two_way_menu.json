@@ -1,0 +1,48 @@
+{
+  "label":"Root", "sub": [
+    {"label":"Actions", "sub":[
+      {"label":"Send", "sub":[
+        {"label":"Stats", "sub":[
+          {"label":"Location"},
+          {"label":"Pulse"}
+        ]},
+        {"label":"Communication", "sub":[
+          {"label":"Wave"},
+          {"label":"Text"}
+        ]}
+      ]},
+      {"label":"Settings", "sub":[
+        {"label":"Systems", "sub":[
+          {"label":"Bluetooth"},
+          {"label":"GPS"}
+        ]},
+        {"label":"Modes", "sub":[
+          {"label":"Do not disturb"},
+          {"label":"Sleep"}
+        ]}
+      ]}
+    ]},
+    {"label":"Info", "sub":[
+      {"label":"Calendar", "sub":[
+        {"label":"View", "sub":[
+          {"label":"Today"},
+          {"label":"Tomorrow"}
+        ]},
+        {"label":"Change", "sub":[
+          {"label":"Add Event"},
+          {"label":"Cancel Event"}
+        ]}
+      ]},
+      {"label":"Health", "sub":[
+        {"label":"Cardiac", "sub":[
+          {"label":"Pulse"},
+          {"label":"O2"}
+        ]},
+        {"label":"Energy", "sub":[
+          {"label":"Calories"},
+          {"label":"Steps"}
+        ]}
+      ]}
+    ]}
+  ]
+}

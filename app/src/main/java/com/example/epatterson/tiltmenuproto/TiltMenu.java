@@ -16,6 +16,7 @@ import android.widget.TextView;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 
 public class TiltMenu extends AppCompatActivity implements TwoWayTiltListener{
 
@@ -28,7 +29,7 @@ public class TiltMenu extends AppCompatActivity implements TwoWayTiltListener{
     private ImageView menuBall = null;
     private float ballInitYPos = 0.0f;
 //    private int ballRadius = 0;
-    TwoWayMenuNode rootMenuNode = null;
+    TwoWayMenuManager menuManager = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,10 +55,15 @@ public class TiltMenu extends AppCompatActivity implements TwoWayTiltListener{
 
                             SensorManager sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
                             tiltManager = new TwoWayTiltManager(sensorManager, (TwoWayTiltListener)v.getContext());
+
+                            initMenuOptions();
                         }
                     }
                 }
         );
+
+        TwoWayMenuNode rootMenuNode = null;
+        ArrayList<TwoWayMenuPath> menuPaths = null;
 
         try {
             InputStream jsonMenuStream = getResources().openRawResource(R.raw.two_way_menu);
@@ -68,11 +74,30 @@ public class TiltMenu extends AppCompatActivity implements TwoWayTiltListener{
 
             TwoWayMenuParser parser = new TwoWayMenuParser();
             rootMenuNode = parser.parseFromJson(menuJsonStr);
-            nodeALabel.setText(rootMenuNode.getSubALabel());
-            nodeBLabel.setText(rootMenuNode.getSubBLabel());
+            nodeALabel.setText(rootMenuNode.getSubLabel(TwoWayMenuNode.SubNodeId.A));
+            nodeBLabel.setText(rootMenuNode.getSubLabel(TwoWayMenuNode.SubNodeId.A));
 
         } catch (IOException e) {
 
+        }
+
+        try {
+            InputStream jsonPathsStream = getResources().openRawResource(R.raw.two_way_paths);
+            byte[] pathBytes = new byte[jsonPathsStream.available()];
+            jsonPathsStream.read(pathBytes);
+            jsonPathsStream.close();
+            String menuPathStr = new String(pathBytes);
+
+            TwoWayPathParser parser = new TwoWayPathParser();
+            menuPaths = parser.parsePathsJson(menuPathStr);
+
+        } catch (IOException e) {
+
+        }
+
+        if(rootMenuNode != null && menuPaths != null)
+        {
+            menuManager = new TwoWayMenuManager(menuPaths, rootMenuNode);
         }
 
     }
@@ -80,16 +105,16 @@ public class TiltMenu extends AppCompatActivity implements TwoWayTiltListener{
     @Override
     public void onTiltAngleChanged(float angle) {
         //invert the direction of the angle to make the Y position math easier
-        angle *= -1.0f;
+        //angle *= -1.0f;
 
-        //500 pixel diameter circle
-        //45 degree tilt should get ball to the edge of range
+        //600 pixel diameter circle
+        //35 degree tilt should get ball to the edge of range
         //translate rotation angle to y position within the circle
         //add ball radius to calculated y pos
 
         float rotationPercent = angle / 35.0f;
         float yPosDelta = rotationPercent * 300;
-        float newBallYPos = ballInitYPos + yPosDelta;
+        float newBallYPos = ballInitYPos - yPosDelta;
 
         if(Math.abs(angle) <= 35.0f) {
             menuBall.setY(newBallYPos);
@@ -103,5 +128,14 @@ public class TiltMenu extends AppCompatActivity implements TwoWayTiltListener{
 
         String deltaStr = Float.toString(yPosDelta);
         delta.setText(deltaStr);
+    }
+
+    private void initMenuOptions()
+    {
+        if(menuManager != null && menuManager.determineNextMenuPath()) {
+            String[] menuOptions = menuManager.getNextMenuOptions();
+            nodeALabel.setText(menuOptions[0]);
+            nodeBLabel.setText(menuOptions[1]);
+        }
     }
 }

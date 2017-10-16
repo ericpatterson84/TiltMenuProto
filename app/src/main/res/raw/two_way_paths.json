@@ -1,0 +1,36 @@
+{
+  "paths":[
+    {
+      "destination":"Pulse",
+      "correctPath": [false,false,false,true]
+    },
+    {
+      "destination":"Text",
+      "correctPath": [false,false,true,true]
+    },
+    {
+      "destination":"Do not disturb",
+      "correctPath": [false,true,true,false]
+    },
+    {
+      "destination":"Sleep",
+      "correctPath": [false,true,true,true]
+    },
+    {
+      "destination":"Today",
+      "correctPath": [true,false,false,false]
+    },
+    {
+      "destination":"Tomorrow",
+      "correctPath": [true,false,false,true]
+    },
+    {
+      "destination":"Pulse",
+      "correctPath": [true,true,false,false]
+    },
+    {
+      "destination":"Calories",
+      "correctPath": [true,true,true,false]
+    }
+  ]
+}

@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 public class TwoWayMenuNode {
 
-    protected ArrayList<TwoWayMenuNode> subNodes;
+    public ArrayList<TwoWayMenuNode> subNodes;
 //    protected TwoWayMenuNode subNodeB = null;
     protected String label;
 
@@ -46,10 +46,14 @@ public class TwoWayMenuNode {
 
     public TwoWayMenuNode getSubNode(SubNodeId subId)
     {
-        if(subNodes.size() != 2)
+        if(subId == SubNodeId.A && subNodes.size() > 0)
         {
-            return null;
+            return subNodes.get(0);
         }
-        return subNodes.get(subId == SubNodeId.A ? 0 : 1);
+        if(subId == SubNodeId.B && subNodes.size() > 1)
+        {
+            return subNodes.get(1);
+        }
+        return null;
     }
 }

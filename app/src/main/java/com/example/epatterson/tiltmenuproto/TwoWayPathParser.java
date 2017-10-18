@@ -44,12 +44,12 @@ public class TwoWayPathParser {
     private TwoWayMenuPath parseMenuPath(JSONObject pathObj)
     {
         TwoWayMenuPath menuPath = new TwoWayMenuPath();
-        if(!pathObj.has("description"))
+        if(!pathObj.has("destination"))
         {
             return null;
         }
         try {
-            menuPath.setDestination(pathObj.getString("description"));
+            menuPath.setDestination(pathObj.getString("destination"));
             JSONArray correctPathJson = pathObj.getJSONArray("correctPath");
             boolean[] correctPath = new boolean[correctPathJson.length()];
             for(int i = 0; i < correctPathJson.length(); i++)

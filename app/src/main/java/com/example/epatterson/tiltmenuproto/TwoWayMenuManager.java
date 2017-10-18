@@ -10,7 +10,7 @@ import java.util.Collections;
 public class TwoWayMenuManager {
 
     private ArrayList<TwoWayMenuPath> menuPaths = null;
-    private TwoWayMenuPath correctPath = null;
+    private TwoWayMenuPath currentPath = null;
     private TwoWayMenuNode rootNode = null;
     private TwoWayMenuNode currentNode = null;
     private ArrayList<Integer> randomPathOrder = null;
@@ -21,22 +21,21 @@ public class TwoWayMenuManager {
         menuPaths = paths;
         rootNode = root;
         randomPathOrder = new ArrayList<>();
+        randomizePaths();
     }
 
     public boolean determineNextMenuPath()
     {
-        if(menuPaths.size() == 0 || rootNode == null)
+        if(menuPaths.size() == 0 || rootNode == null || randomPathOrder.size() == 0)
         {
             return false;
         }
 
-        randomizePaths();
-
         int pathIdx = randomPathOrder.get(0);
         randomPathOrder.remove(0);
 
-        correctPath = menuPaths.get(pathIdx);
-        userPath = new boolean[correctPath.getPathLength()];
+        currentPath = menuPaths.get(pathIdx);
+        userPath = new boolean[currentPath.getPathLength()];
 
         currentNode = rootNode;
 
@@ -70,13 +69,24 @@ public class TwoWayMenuManager {
     {
         if(menuTreeDepth >= 0 && menuTreeDepth < userPath.length) {
             userPath[menuTreeDepth] = (id == TwoWayMenuNode.SubNodeId.A);
-            if(currentNode.hasSubNodes()) {
-                currentNode = currentNode.getSubNode(id);
-                return true;
-            }
-            return false;
+            return true;
         }
 
         return false;
+    }
+
+    public boolean traverseMenuTree(TwoWayMenuNode.SubNodeId id)
+    {
+        currentNode = currentNode.getSubNode(id);
+        return currentNode.hasSubNodes();
+    }
+
+    public String getCurrentTarget()
+    {
+        if(currentPath != null)
+        {
+            return currentPath.getDestination();
+        }
+        return "";
     }
 }

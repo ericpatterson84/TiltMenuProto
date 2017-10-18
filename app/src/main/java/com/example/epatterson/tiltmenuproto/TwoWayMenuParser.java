@@ -23,7 +23,9 @@ public class TwoWayMenuParser {
             JSONObject rootJsonObj = new JSONObject(rawMenuJson);
             TwoWayMenuNode invisibleRootNode = new TwoWayMenuNode();
             parseMenuLevel(rootJsonObj, invisibleRootNode);
-            return invisibleRootNode.getSubNode(TwoWayMenuNode.SubNodeId.A);
+//            TwoWayMenuNode rootNode = invisibleRootNode.getSubNode(TwoWayMenuNode.SubNodeId.A);
+            TwoWayMenuNode rootNode = invisibleRootNode.subNodes.get(0);
+            return rootNode;
 
         } catch(JSONException je) {
             return null;

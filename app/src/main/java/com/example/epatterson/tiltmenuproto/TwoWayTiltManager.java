@@ -13,19 +13,13 @@ import android.util.Log;
 public class TwoWayTiltManager implements SensorEventListener {
 
     private TwoWayTiltListener twoWayTiltListener = null;
+    private SensorManager sensorManager = null;
 
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
         float[] rotationMatrix = new float[16];
         SensorManager.getRotationMatrixFromVector(
                 rotationMatrix, sensorEvent.values);
-
-//            // Remap coordinate system
-//            float[] remappedRotationMatrix = new float[16];
-//            SensorManager.remapCoordinateSystem(rotationMatrix,
-//                    SensorManager.AXIS_X,
-//                    SensorManager.AXIS_Z,
-//                    remappedRotationMatrix);
 
         // Convert to orientations
         float[] orientations = new float[3];
@@ -51,14 +45,26 @@ public class TwoWayTiltManager implements SensorEventListener {
     public TwoWayTiltManager(SensorManager sensorMgr, TwoWayTiltListener twoWayListener)
     {
         twoWayTiltListener = twoWayListener;
+        sensorManager = sensorMgr;
+    }
 
-        Sensor rotationVectorSensor = sensorMgr.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
+    public boolean startTiltRecord()
+    {
+        Sensor rotationVectorSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
+
+        // Register it
+        sensorManager.registerListener(this, rotationVectorSensor, SensorManager.SENSOR_DELAY_NORMAL);
 
         if(rotationVectorSensor == null) {
             Log.e("Proto", "Proximity sensor not available.");
+            return false;
         }
 
-        // Register it
-        sensorMgr.registerListener(this, rotationVectorSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        return true;
+    }
+
+    public void stopTiltRecord()
+    {
+        sensorManager.unregisterListener(this);
     }
 }

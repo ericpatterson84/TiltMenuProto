@@ -89,4 +89,9 @@ public class TwoWayMenuManager {
         }
         return "";
     }
+
+    public boolean isUserPathSuccess()
+    {
+        return currentPath.isPathMatch(userPath);
+    }
 }

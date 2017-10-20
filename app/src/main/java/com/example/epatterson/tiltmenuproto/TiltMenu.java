@@ -6,6 +6,7 @@ import android.hardware.SensorManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -17,7 +18,11 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
 public class TiltMenu extends AppCompatActivity implements TwoWayTiltListener{
 
@@ -174,7 +179,6 @@ public class TiltMenu extends AppCompatActivity implements TwoWayTiltListener{
         nodeALabel.setText(menuOptions[0]);
         nodeBLabel.setText(menuOptions[1]);
         menuSelected = false;
-        dataCollectionManager.startTimer();
     }
 
     private void selectMenuOption(TwoWayMenuNode.SubNodeId id)
@@ -197,6 +201,7 @@ public class TiltMenu extends AppCompatActivity implements TwoWayTiltListener{
         String target = menuManager.getCurrentTarget();
         pathTarget.setText(target);
         currentPathDone = false;
+        dataCollectionManager.startTimer();
     }
 
     private DialogInterface.OnClickListener sessionCompleteDialogClickListener = new DialogInterface.OnClickListener() {
@@ -224,36 +229,23 @@ public class TiltMenu extends AppCompatActivity implements TwoWayTiltListener{
 
     private void writeDataFileAndEmail(String csvData)
     {
-        File file   = null;
-        File root   = Environment.getExternalStorageDirectory();
-        if (root.canWrite()){
-            File dir    =   new File (root.getAbsolutePath() + "/TiltMenuData");
-            dir.mkdirs();
-            file   =   new File(dir, "Data.csv");
-            FileOutputStream out   =   null;
-            try {
-                out = new FileOutputStream(file);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-            try {
-                out.write(csvData.getBytes());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            try {
-                out.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        final Intent emailIntent = new Intent( android.content.Intent.ACTION_SEND);
 
-        Uri u1 = Uri.fromFile(file);
+        emailIntent.setType("plain/text");
 
-        Intent sendIntent = new Intent(Intent.ACTION_SEND);
-        sendIntent.putExtra(Intent.EXTRA_SUBJECT, "TiltMenu Session Data");
-        sendIntent.putExtra(Intent.EXTRA_STREAM, u1);
-        sendIntent.setType("text/html");
-        startActivity(sendIntent);
+//        emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL,
+//                new String[] { "abc@gmail.com" });
+
+        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.CANADA);
+        Date date = new Date();
+        emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT,
+                "Session data - " + dateFormat.format(date));
+
+        emailIntent.putExtra(android.content.Intent.EXTRA_TEXT,
+                csvData);
+
+        startActivity(Intent.createChooser(
+                emailIntent, "Send session data..."));
+
     }
 }

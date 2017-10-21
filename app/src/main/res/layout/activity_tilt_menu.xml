@@ -4,19 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.epatterson.tiltmenuproto.TiltMenu">
-
-    <TextView
-        android:id="@+id/zAngle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="angle"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.044"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.032" />
+    tools:context="com.example.epatterson.tiltmenuproto.TiltMenu"
+    android:background="#4B4B4B">
 
     <ImageView
         android:id="@+id/selectionCircle"
@@ -33,7 +22,7 @@
 
     <TextView
         android:id="@+id/textTop"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
         android:layout_marginTop="60dp"
@@ -43,11 +32,12 @@
         android:textSize="24sp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/selectionCircle" />
+        app:layout_constraintTop_toTopOf="@+id/selectionCircle"
+        android:textAlignment="center"/>
 
     <TextView
         android:id="@+id/textBottom"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
         android:layout_marginBottom="60dp"
@@ -57,7 +47,8 @@
         android:textSize="24sp"
         app:layout_constraintBottom_toBottomOf="@+id/selectionCircle"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent" />
+        app:layout_constraintRight_toRightOf="parent"
+        android:textAlignment="center"/>
 
     <ImageView
         android:id="@+id/menuBall"
@@ -73,21 +64,17 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/percent"
-        android:layout_width="wrap_content"
+        android:id="@+id/menuTarget"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="percent"
-        tools:layout_editor_absoluteX="31dp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintTop_toBottomOf="@+id/zAngle" />
-
-    <TextView
-        android:id="@+id/delta"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="delta"
-        tools:layout_editor_absoluteX="31dp"
         android:layout_marginTop="7dp"
-        app:layout_constraintTop_toBottomOf="@+id/percent" />
+        android:text="Navigate to:"
+        android:textAppearance="@style/TextAppearance.AppCompat"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:textAlignment="center"
+        android:textColor="#FFF"
+        android:textSize="18sp"/>
 
 </android.support.constraint.ConstraintLayout>

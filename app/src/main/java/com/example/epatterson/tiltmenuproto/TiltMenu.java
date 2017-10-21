@@ -12,6 +12,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.android.gms.analytics.Tracker;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -26,8 +29,6 @@ import java.util.Locale;
 
 public class TiltMenu extends AppCompatActivity implements TwoWayTiltListener{
 
-    private TextView zAngle = null;
-    private TextView percent = null;
     private TextView pathTarget = null;
     private TextView nodeALabel = null;
     private TextView nodeBLabel = null;
@@ -45,20 +46,17 @@ public class TiltMenu extends AppCompatActivity implements TwoWayTiltListener{
     private boolean menuSelected = false;
     private boolean currentPathDone = false;
     private DataCollectionManager dataCollectionManager = null;
+    private Tracker mTracker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tilt_menu);
-        zAngle = (TextView)findViewById(R.id.zAngle);
-        percent = (TextView)findViewById(R.id.percent);
-        pathTarget = (TextView)findViewById(R.id.delta);
+        pathTarget = (TextView)findViewById(R.id.menuTarget);
         menuBall = (ImageView)findViewById(R.id.menuBall);
         nodeALabel = (TextView)findViewById(R.id.textTop);
         nodeBLabel = (TextView)findViewById(R.id.textBottom);
         selectionCircle = (ImageView)findViewById(R.id.selectionCircle);
-
-//        ballRadius = menuBall.getHeight()/2;
 
         menuBall.addOnLayoutChangeListener(
                 new View.OnLayoutChangeListener() {
@@ -121,7 +119,7 @@ public class TiltMenu extends AppCompatActivity implements TwoWayTiltListener{
         }
 
         try {
-            InputStream jsonPathsStream = getResources().openRawResource(R.raw.two_way_paths_test);
+            InputStream jsonPathsStream = getResources().openRawResource(R.raw.two_way_paths);
             byte[] pathBytes = new byte[jsonPathsStream.available()];
             jsonPathsStream.read(pathBytes);
             jsonPathsStream.close();
@@ -139,17 +137,17 @@ public class TiltMenu extends AppCompatActivity implements TwoWayTiltListener{
             menuManager = new TwoWayMenuManager(menuPaths, rootMenuNode);
             dataCollectionManager = new DataCollectionManager();
         }
+
+        // Obtain the shared Tracker instance.
+        AnalyticsApplication application = (AnalyticsApplication) getApplication();
+        mTracker = application.getDefaultTracker();
+        dataCollectionManager.setTracker(mTracker);
     }
 
     @Override
     public void onTiltAngleChanged(float angle) {
-        //invert the direction of the angle to make the Y position math easier
-        //angle *= -1.0f;
-
-        //600 pixel diameter circle
-        //35 degree tilt should get ball to the edge of range
+        //35 degree tilt should get ball to the edge of circle
         //translate rotation angle to y position within the circle
-        //add ball radius to calculated y pos
 
         float rotationPercent = angle / 35.0f;
         float yPosDelta = rotationPercent * selectionCircleRadius;
@@ -157,21 +155,18 @@ public class TiltMenu extends AppCompatActivity implements TwoWayTiltListener{
 
         if( (newBallYPos >= selectionCircleTop) && (newBallYPos <= selectionCircleBottomEdge)) {
             menuBall.setY(newBallYPos);
+        } else if(newBallYPos < selectionCircleTop) {
+            menuBall.setY(selectionCircleTop);
+        } else if(newBallYPos > selectionCircleBottomEdge) {
+            menuBall.setY(selectionCircleBottomEdge);
         }
 
         if(Math.abs(angle) <= 35.0f) {
-//            menuBall.setY(newBallYPos);
-
             if(menuSelected && Math.abs(angle) <= 15.0f)
             {
-//            if (menuSelected && (newBallYPos > selectionCircleTopEdge) && (newBallYPos < selectionCircleBottomEdge))
                 if (currentPathDone) {
-                    //check for correct path
-                    //log ux data
-                    //handle next path
                     if (!menuManager.determineNextMenuPath()) {
                         //completed all paths
-                        pathTarget.setText("COMPLETE!!");
                         tiltManager.stopTiltRecord();
                         showSessionCompleteDialog();
                         return;
@@ -187,28 +182,26 @@ public class TiltMenu extends AppCompatActivity implements TwoWayTiltListener{
                 selectMenuOption(TwoWayMenuNode.SubNodeId.B);
             }
         }
-
-//        String zAngleStr = Float.toString(angle);
-//        zAngle.setText(zAngleStr);
-//
-//        String percentStr = Float.toString(rotationPercent);
-//        percent.setText(percentStr);
-//
-//        String yPos = Float.toString(newBallYPos);
-//        pathTarget.setText(yPos);
     }
 
     private void initMenuOptions()
     {
         selectionCircleTopEdge = selectionCircleTop + ballHeight;
         selectionCircleBottomEdge = selectionCircleBottom - ballHeight;
-//        String circleTopEdge = Integer.toString(selectionCircleTopEdge);
-//        zAngle.setText(circleTopEdge);
-//        String circleTopBottom = Integer.toString(selectionCircleBottomEdge);
-//        percent.setText(circleTopBottom);
         if(menuManager != null && menuManager.determineNextMenuPath()) {
             updateMenuOptions();
             updatePathTarget();
+        }
+    }
+
+    private void restartSession()
+    {
+        menuManager.randomizePaths();
+        if(menuManager.determineNextMenuPath())
+        {
+            updateMenuOptions();
+            updatePathTarget();
+            tiltManager.startTiltRecord();
         }
     }
 
@@ -244,9 +237,10 @@ public class TiltMenu extends AppCompatActivity implements TwoWayTiltListener{
     private void updatePathTarget()
     {
         String target = menuManager.getCurrentTarget();
-        pathTarget.setText(target);
+        pathTarget.setText("Navigate to: " + target);
         currentPathDone = false;
         dataCollectionManager.startTimer();
+        Toast.makeText(this,"Navigation target updated", Toast.LENGTH_SHORT).show();
     }
 
     private DialogInterface.OnClickListener sessionCompleteDialogClickListener = new DialogInterface.OnClickListener() {
@@ -254,8 +248,7 @@ public class TiltMenu extends AppCompatActivity implements TwoWayTiltListener{
         public void onClick(DialogInterface dialog, int which) {
             switch (which){
                 case DialogInterface.BUTTON_POSITIVE:
-                    String sessionCsvStr = dataCollectionManager.loggedDataAsCsvString();
-                    writeDataFileAndEmail(sessionCsvStr);
+                    restartSession();
                     break;
 
                 case DialogInterface.BUTTON_NEGATIVE:
@@ -268,29 +261,7 @@ public class TiltMenu extends AppCompatActivity implements TwoWayTiltListener{
     private void showSessionCompleteDialog()
     {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage("Your sessions is complete. Please return device to the facilitator").setPositiveButton("Email session data", sessionCompleteDialogClickListener)
-                .setNegativeButton("New session", sessionCompleteDialogClickListener).show();
-    }
-
-    private void writeDataFileAndEmail(String csvData)
-    {
-        final Intent emailIntent = new Intent( android.content.Intent.ACTION_SEND);
-
-        emailIntent.setType("plain/text");
-
-//        emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL,
-//                new String[] { "abc@gmail.com" });
-
-        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.CANADA);
-        Date date = new Date();
-        emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT,
-                "Session data - " + dateFormat.format(date));
-
-        emailIntent.putExtra(android.content.Intent.EXTRA_TEXT,
-                csvData);
-
-        startActivity(Intent.createChooser(
-                emailIntent, "Send session data..."));
-
+        builder.setMessage("Your sessions is complete. Please return device to the facilitator")
+                .setPositiveButton("New session", sessionCompleteDialogClickListener).show();
     }
 }

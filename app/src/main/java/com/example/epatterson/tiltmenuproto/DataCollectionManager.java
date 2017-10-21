@@ -1,5 +1,8 @@
 package com.example.epatterson.tiltmenuproto;
 
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -9,33 +12,24 @@ import java.util.Iterator;
  */
 
 public class DataCollectionManager {
-    private ArrayList<MenuOptionDataPoint> dataPoints = null;
     private Date startTime, endTime = null;
+    private Tracker mTracker = null;
 
     public DataCollectionManager()
     {
-        dataPoints = new ArrayList<>();
     }
 
     public void logMenuOptionData(String target, int seconds, boolean success)
     {
-        dataPoints.add( new MenuOptionDataPoint(target, seconds, success) );
-    }
-
-    public String loggedDataAsCsvString()
-    {
-        String dataAsCsv = "Time-stamp,Menu Target,Duration,Success\n";
-        Iterator<MenuOptionDataPoint> dataIter = dataPoints.iterator();
-        while(dataIter.hasNext())
+        if(mTracker != null)
         {
-            dataAsCsv += dataIter.next().toCsvString() + "\n";
+            mTracker.send(new HitBuilders.EventBuilder()
+                    .setCategory("MenuTraverse")
+                    .setAction(target)
+                    .setValue(seconds)
+                    .set("Success", success ? "Yes" : "No")
+                    .build());
         }
-        return dataAsCsv;
-    }
-
-    public void clearLoggedData()
-    {
-        dataPoints.clear();
     }
 
     public void startTimer()
@@ -55,5 +49,10 @@ public class DataCollectionManager {
             return (int)((endTime.getTime() - startTime.getTime()) / 1000);
         }
         return 0;
+    }
+
+    public void setTracker(Tracker dataTracker)
+    {
+        mTracker = dataTracker;
     }
 }

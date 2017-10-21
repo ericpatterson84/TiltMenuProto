@@ -56,7 +56,7 @@ public class TwoWayMenuManager {
         return menuOptions;
     }
 
-    private void randomizePaths()
+    public void randomizePaths()
     {
         randomPathOrder.clear();
         for(int i = 0; i < menuPaths.size(); i++) {

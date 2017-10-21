@@ -33,8 +33,14 @@ public class TiltMenu extends AppCompatActivity implements TwoWayTiltListener{
     private TextView nodeBLabel = null;
     private TwoWayTiltManager tiltManager = null;
     private ImageView menuBall = null;
+    private ImageView selectionCircle = null;
+    private int selectionCircleRadius = 0;
+    private int selectionCircleTop = 0;
+    private int selectionCircleBottom = 0;
+    private int selectionCircleTopEdge = 0;
+    private int selectionCircleBottomEdge = 0;
     private float ballInitYPos = 0.0f;
-//    private int ballRadius = 0;
+    private int ballHeight = 0;
     TwoWayMenuManager menuManager = null;
     private boolean menuSelected = false;
     private boolean currentPathDone = false;
@@ -50,6 +56,7 @@ public class TiltMenu extends AppCompatActivity implements TwoWayTiltListener{
         menuBall = (ImageView)findViewById(R.id.menuBall);
         nodeALabel = (TextView)findViewById(R.id.textTop);
         nodeBLabel = (TextView)findViewById(R.id.textBottom);
+        selectionCircle = (ImageView)findViewById(R.id.selectionCircle);
 
 //        ballRadius = menuBall.getHeight()/2;
 
@@ -60,13 +67,35 @@ public class TiltMenu extends AppCompatActivity implements TwoWayTiltListener{
                         if(top > 0)
                         {
                             ballInitYPos = top;
+                            ballHeight = (bottom - top);
                             v.removeOnLayoutChangeListener(this);
 
                             SensorManager sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
                             tiltManager = new TwoWayTiltManager(sensorManager, (TwoWayTiltListener)v.getContext());
                             tiltManager.startTiltRecord();
 
-                            initMenuOptions();
+                            if(selectionCircleTop != 0) {
+                                initMenuOptions();
+                            }
+                        }
+                    }
+                }
+        );
+
+        selectionCircle.addOnLayoutChangeListener(
+                new View.OnLayoutChangeListener() {
+                    @Override
+                    public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                        if(top > 0)
+                        {
+                            selectionCircleTop = top;
+                            selectionCircleBottom = bottom;
+                            selectionCircleRadius = (bottom - top) / 2;
+                            v.removeOnLayoutChangeListener(this);
+
+                            if(ballInitYPos != 0) {
+                                initMenuOptions();
+                            }
                         }
                     }
                 }
@@ -110,7 +139,6 @@ public class TiltMenu extends AppCompatActivity implements TwoWayTiltListener{
             menuManager = new TwoWayMenuManager(menuPaths, rootMenuNode);
             dataCollectionManager = new DataCollectionManager();
         }
-
     }
 
     @Override
@@ -124,21 +152,24 @@ public class TiltMenu extends AppCompatActivity implements TwoWayTiltListener{
         //add ball radius to calculated y pos
 
         float rotationPercent = angle / 35.0f;
-        float yPosDelta = rotationPercent * 300;
+        float yPosDelta = rotationPercent * selectionCircleRadius;
         float newBallYPos = ballInitYPos - yPosDelta;
 
-        if(Math.abs(angle) <= 35.0f) {
+        if( (newBallYPos >= selectionCircleTop) && (newBallYPos <= selectionCircleBottomEdge)) {
             menuBall.setY(newBallYPos);
+        }
 
-            if(menuSelected && Math.abs(angle) <= 30.0f)
+        if(Math.abs(angle) <= 35.0f) {
+//            menuBall.setY(newBallYPos);
+
+            if(menuSelected && Math.abs(angle) <= 15.0f)
             {
-                if(currentPathDone)
-                {
+//            if (menuSelected && (newBallYPos > selectionCircleTopEdge) && (newBallYPos < selectionCircleBottomEdge))
+                if (currentPathDone) {
                     //check for correct path
                     //log ux data
                     //handle next path
-                    if(!menuManager.determineNextMenuPath())
-                    {
+                    if (!menuManager.determineNextMenuPath()) {
                         //completed all paths
                         pathTarget.setText("COMPLETE!!");
                         tiltManager.stopTiltRecord();
@@ -149,10 +180,12 @@ public class TiltMenu extends AppCompatActivity implements TwoWayTiltListener{
                 }
                 updateMenuOptions();
             }
-        } else if(angle >= 35.0f && !menuSelected) {
-            selectMenuOption(TwoWayMenuNode.SubNodeId.A);
-        } else if(angle <= -35.0f && !menuSelected) {
-            selectMenuOption(TwoWayMenuNode.SubNodeId.B);
+
+            if (!menuSelected && (newBallYPos <= selectionCircleTopEdge)) {
+                selectMenuOption(TwoWayMenuNode.SubNodeId.A);
+            } else if (!menuSelected && (newBallYPos >= selectionCircleBottomEdge - ballHeight)) {
+                selectMenuOption(TwoWayMenuNode.SubNodeId.B);
+            }
         }
 
 //        String zAngleStr = Float.toString(angle);
@@ -161,12 +194,18 @@ public class TiltMenu extends AppCompatActivity implements TwoWayTiltListener{
 //        String percentStr = Float.toString(rotationPercent);
 //        percent.setText(percentStr);
 //
-//        String deltaStr = Float.toString(yPosDelta);
-//        delta.setText(deltaStr);
+//        String yPos = Float.toString(newBallYPos);
+//        pathTarget.setText(yPos);
     }
 
     private void initMenuOptions()
     {
+        selectionCircleTopEdge = selectionCircleTop + ballHeight;
+        selectionCircleBottomEdge = selectionCircleBottom - ballHeight;
+//        String circleTopEdge = Integer.toString(selectionCircleTopEdge);
+//        zAngle.setText(circleTopEdge);
+//        String circleTopBottom = Integer.toString(selectionCircleBottomEdge);
+//        percent.setText(circleTopBottom);
         if(menuManager != null && menuManager.determineNextMenuPath()) {
             updateMenuOptions();
             updatePathTarget();
@@ -179,11 +218,17 @@ public class TiltMenu extends AppCompatActivity implements TwoWayTiltListener{
         nodeALabel.setText(menuOptions[0]);
         nodeBLabel.setText(menuOptions[1]);
         menuSelected = false;
+        selectionCircle.setImageResource(R.drawable.circle_unselected);
     }
 
     private void selectMenuOption(TwoWayMenuNode.SubNodeId id)
     {
         menuSelected = true;
+        if( id == TwoWayMenuNode.SubNodeId.A) {
+            selectionCircle.setImageResource(R.drawable.circle_a_selected);
+        } else  {
+            selectionCircle.setImageResource(R.drawable.circle_b_selected);
+        }
         menuManager.recordMenuPath(id);
         currentPathDone = !menuManager.traverseMenuTree(id);
         if(currentPathDone)

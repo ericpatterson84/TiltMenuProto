@@ -12,16 +12,20 @@ User quantitative data is collected after each attempted menu navigation. The in
 3. Ensure the latest Android SDK is downloaded during installation
 4. Run Android Studio and Choose 'File -> Open' menu option
 5. Browse to the root of cloned repo
-6. Ensure project builds successfully by choosing 'Build -> Make Project'
-7. Connect Android device running at least Android 5.0 to computer via USB 
+6. Project will load and attempt to build
+   - If you see errors in the 'Messages' panel regarding the build.gradle file and failing to resolve artifacts, choose the option to install the artifact and sync the project
+7. Ensure project builds successfully by choosing 'Build -> Make Project'
+8. Connect Android device running at least Android 5.0 to computer via USB 
     - You may need to install device specific drivers
     - Ensure USB mode is set to "Transfer files"
     - Ensure USB debugging is enabled
-8. Select 'Run -> Run app' OR 'Run -> Debug app' to run the app on the connected device
+9. Select 'Run -> Run app' OR 'Run -> Debug app' to run the app on the connected device
     - Your connected device should be listed in a dialog that pops up
     - Choose OK
-9. Click OK if a dialog pops up on the device asking for permission to debug
-10. App should be visible on screen and responding to rotational movement
+10. Click OK if a dialog pops up on the device asking for permission to debug
+
+11. App should be visible on screen and responding to rotational movement
+12. If you see a dialog about "Instant Run", you can choose to install it but it's not necessary
 
 ## UX Facilitator Instructions
 1. Ensure device used for usability sessions has an active internet connection so that data can be logged
